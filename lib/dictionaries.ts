@@ -53,7 +53,7 @@ const no = {
       title: "Denne porteføljen",
       description:
         "Min personlige nettside. Skogen øverst følger det virkelige dagslyset og været i Bergen, hentet fra Meteorologisk institutts åpne API.",
-      link: "Min GitHub",
+      link: "Se koden på GitHub",
     },
   },
   principles: {
@@ -145,7 +145,7 @@ const en: Dictionary = {
       title: "This portfolio",
       description:
         "My personal site. The forest at the top follows Bergen's real daylight and weather, fetched from MET Norway's open API.",
-      link: "My GitHub",
+      link: "View the code on GitHub",
     },
   },
   principles: {
