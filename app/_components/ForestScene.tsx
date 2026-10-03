@@ -203,146 +203,162 @@ export default function ForestScene({ forest, lang, labels }: Props) {
     "--glow": sky.glow,
   } as CSSProperties;
 
-  return (
-    <div ref={sceneRef} className="scene" data-ready={ready} style={variables}>
-      <div className="scene-fade absolute inset-0">
-        <div className="scene-sky" />
-        <div className="scene-sun" />
-        <div className="scene-moon" />
+  // The controls: a time slider and the weather buttons. Written once here and placed in two spots
+  // below, because the right spot depends on the screen size. The <label> wraps the slider, which
+  // ties the two together without needing an id (an id may only appear once on a page).
+  const controls = open && (
+    <div className="glass w-full max-w-sm rounded-2xl p-4 text-sm text-ink">
+      <label className="block">
+        <span className="flex items-center justify-between gap-3">
+          <span>{labels.time}</span>
+          <span className="font-mono text-accent">{formatClock(scrub ?? bergenMinutes(now))}</span>
+        </span>
+        <input
+          type="range"
+          min={0}
+          max={1435}
+          step={5}
+          value={scrub ?? bergenMinutes(now)}
+          onChange={(event) => setScrub(Number(event.target.value))}
+          className="mt-2 h-8 w-full accent-accent"
+        />
+      </label>
 
-        {/* The drawing is 3200 x 900 units. "slice" scales it to cover the box and crops the sides,
-            so phones see the middle of the forest and wide screens see more of it. */}
-        <svg
-          className="scene-svg"
-          viewBox={`0 0 ${WORLD.width} ${WORLD.height}`}
-          preserveAspectRatio="xMidYMax slice"
-          aria-hidden="true"
-        >
-          <defs>
-            <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0" style={{ stopColor: "var(--sky-bottom)", stopOpacity: 0 }} />
-              <stop offset="0.6" style={{ stopColor: "var(--sky-bottom)", stopOpacity: "var(--mist)" }} />
-              <stop offset="1" style={{ stopColor: "var(--sky-bottom)", stopOpacity: 0 }} />
-            </linearGradient>
-            <radialGradient id="glow">
-              <stop offset="0" stopColor="#f2b544" stopOpacity="0.9" />
-              <stop offset="0.35" stopColor="#f2b544" stopOpacity="0.25" />
-              <stop offset="1" stopColor="#f2b544" stopOpacity="0" />
-            </radialGradient>
-          </defs>
-
-          <path className="layer layer-mountains" d={forest.mountains} />
-          <path className="layer layer-ridge" d={forest.ridge} />
-          <rect className="layer layer-ridge" style={{ fill: "url(#mist)" }} y="560" width={WORLD.width} height="230" />
-          <path className="layer layer-forest" d={forest.forest} />
-
-          {/* The server in the forest. Clicking it opens the sky controls. */}
-          <g
-            className="server"
-            transform={`translate(${forest.server.x} ${forest.server.y}) scale(1.45)`}
-            onClick={() => setOpen((value) => !value)}
+      <p className="mt-3">{labels.weather}</p>
+      <div className="mt-2 flex flex-wrap gap-2">
+        {(Object.keys(PRESETS) as Preset[]).map((key) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setPreset(preset === key ? null : key)}
+            aria-pressed={preset === key}
+            className={`rounded-full border px-3.5 py-2 text-xs font-medium transition-colors ${
+              preset === key
+                ? "border-accent bg-accent text-bg"
+                : "border-ink/20 hover:border-ink/50"
+            }`}
           >
-            <circle className="server-glow" cy="-60" r="230" fill="url(#glow)" />
-            <rect x="-34" y="-118" width="68" height="118" rx="4" fill="#0e1613" stroke="#2c3b34" strokeWidth="2" />
-            {[0, 1, 2, 3, 4].map((unit) => (
-              <g key={unit} transform={`translate(-28 ${-112 + unit * 22})`}>
-                <rect width="56" height="18" rx="2" fill="#18241f" />
-                <circle className="led" cx="8" cy="9" r="2.6" style={{ animationDelay: `${unit * -0.7}s` }} />
-                <circle cx="17" cy="9" r="2.6" fill={unit === 1 ? "#f2b544" : "#2c3b34"} />
-                <rect x="28" y="6" width="22" height="2" fill="#2c3b34" />
-                <rect x="28" y="10" width="22" height="2" fill="#2c3b34" />
-              </g>
-            ))}
-          </g>
-
-          <path className="layer-near" d={forest.near} />
-        </svg>
-
-        <canvas ref={canvasRef} className="scene-weather" aria-hidden="true" />
+            {labels.presets[key]}
+          </button>
+        ))}
       </div>
 
-      {/* The readout: what the sky is showing right now, plus the controls to play with it. */}
-      <div className="scene-fade absolute inset-x-0 top-[4.5rem] z-10 mx-auto w-full max-w-5xl px-5 sm:px-8">
-        <div className="glass inline-flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl py-1.5 pl-3.5 pr-1.5 font-mono text-xs text-ink">
-          <span className="flex items-center gap-2 tracking-widest">
-            <span className={`h-2 w-2 rounded-full ${isLive ? "live-dot bg-led" : "bg-accent"}`} />
-            {isLive ? labels.live : labels.preview}
-          </span>
-          <span>Bergen {formatClock(bergenMinutes(shown))}</span>
-          {preset ? (
-            <span>{labels.presets[preset]}</span>
-          ) : (
-            weather && (
-              <span>
-                {Math.round(weather.temperature)}°C · {live?.label}
-              </span>
-            )
-          )}
-          <span className="hidden text-muted sm:inline">
-            {(sunHeight >= 0 ? labels.sunAbove : labels.sunBelow).replace("{n}", String(Math.abs(sunHeight)))}
-          </span>
-          <button
-            type="button"
-            onClick={() => setOpen((value) => !value)}
-            aria-expanded={open}
-            aria-controls="sky-controls"
-            className="min-h-10 rounded-xl bg-ink/10 px-3 py-2 font-sans text-xs font-medium transition-colors hover:bg-ink/20"
+      {!isLive && (
+        <button
+          type="button"
+          onClick={() => {
+            setScrub(null);
+            setPreset(null);
+          }}
+          className="mt-4 text-xs font-medium text-accent underline underline-offset-4"
+        >
+          {labels.backToLive}
+        </button>
+      )}
+    </div>
+  );
+
+  return (
+    <>
+      <div ref={sceneRef} className="scene" data-ready={ready} style={variables}>
+        <div className="scene-fade absolute inset-0">
+          <div className="scene-sky" />
+          <div className="scene-sun" />
+          <div className="scene-moon" />
+
+          {/* The drawing is 3200 x 900 units. "slice" scales it to cover the box and crops the sides,
+              so phones see the middle of the forest and wide screens see more of it. */}
+          <svg
+            className="scene-svg"
+            viewBox={`0 0 ${WORLD.width} ${WORLD.height}`}
+            preserveAspectRatio="xMidYMax slice"
+            aria-hidden="true"
           >
-            {open ? labels.close : labels.open}
-          </button>
+            <defs>
+              <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" style={{ stopColor: "var(--sky-bottom)", stopOpacity: 0 }} />
+                <stop offset="0.6" style={{ stopColor: "var(--sky-bottom)", stopOpacity: "var(--mist)" }} />
+                <stop offset="1" style={{ stopColor: "var(--sky-bottom)", stopOpacity: 0 }} />
+              </linearGradient>
+              <radialGradient id="glow">
+                <stop offset="0" stopColor="#f2b544" stopOpacity="0.9" />
+                <stop offset="0.35" stopColor="#f2b544" stopOpacity="0.25" />
+                <stop offset="1" stopColor="#f2b544" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+
+            <path className="layer layer-mountains" d={forest.mountains} />
+            <path className="layer layer-ridge" d={forest.ridge} />
+            <rect className="layer layer-ridge" style={{ fill: "url(#mist)" }} y="560" width={WORLD.width} height="230" />
+            <path className="layer layer-forest" d={forest.forest} />
+
+            {/* The server in the forest. Clicking it opens the sky controls. */}
+            <g
+              className="server"
+              transform={`translate(${forest.server.x} ${forest.server.y}) scale(1.45)`}
+              onClick={() => setOpen((value) => !value)}
+            >
+              <circle className="server-glow" cy="-60" r="230" fill="url(#glow)" />
+              <rect x="-34" y="-118" width="68" height="118" rx="4" fill="#0e1613" stroke="#2c3b34" strokeWidth="2" />
+              {[0, 1, 2, 3, 4].map((unit) => (
+                <g key={unit} transform={`translate(-28 ${-112 + unit * 22})`}>
+                  <rect width="56" height="18" rx="2" fill="#18241f" />
+                  <circle className="led" cx="8" cy="9" r="2.6" style={{ animationDelay: `${unit * -0.7}s` }} />
+                  <circle cx="17" cy="9" r="2.6" fill={unit === 1 ? "#f2b544" : "#2c3b34"} />
+                  <rect x="28" y="6" width="22" height="2" fill="#2c3b34" />
+                  <rect x="28" y="10" width="22" height="2" fill="#2c3b34" />
+                </g>
+              ))}
+            </g>
+
+            <path className="layer-near" d={forest.near} />
+          </svg>
+
+          <canvas ref={canvasRef} className="scene-weather" aria-hidden="true" />
         </div>
 
-        {open && (
-          <div id="sky-controls" className="glass mt-2 w-full max-w-sm rounded-2xl p-4 text-sm text-ink">
-            <label className="flex items-center justify-between gap-3" htmlFor="sky-time">
-              <span>{labels.time}</span>
-              <span className="font-mono text-accent">{formatClock(scrub ?? bergenMinutes(now))}</span>
-            </label>
-            <input
-              id="sky-time"
-              type="range"
-              min={0}
-              max={1435}
-              step={5}
-              value={scrub ?? bergenMinutes(now)}
-              onChange={(event) => setScrub(Number(event.target.value))}
-              className="mt-2 h-8 w-full accent-accent"
-            />
-
-            <p className="mt-3">{labels.weather}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {(Object.keys(PRESETS) as Preset[]).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setPreset(preset === key ? null : key)}
-                  aria-pressed={preset === key}
-                  className={`rounded-full border px-3.5 py-2 text-xs font-medium transition-colors ${
-                    preset === key
-                      ? "border-accent bg-accent text-bg"
-                      : "border-ink/20 hover:border-ink/50"
-                  }`}
-                >
-                  {labels.presets[key]}
-                </button>
-              ))}
-            </div>
-
-            {!isLive && (
-              <button
-                type="button"
-                onClick={() => {
-                  setScrub(null);
-                  setPreset(null);
-                }}
-                className="mt-4 text-xs font-medium text-accent underline underline-offset-4"
-              >
-                {labels.backToLive}
-              </button>
+        {/* The readout: what the sky is showing right now, plus the controls to play with it. */}
+        <div className="scene-fade absolute inset-x-0 top-[4.5rem] z-10 mx-auto w-full max-w-5xl px-5 sm:px-8">
+          <div className="glass inline-flex max-w-full flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl py-1.5 pl-3.5 pr-1.5 font-mono text-xs text-ink">
+            <span className="flex items-center gap-2 tracking-widest">
+              <span className={`h-2 w-2 rounded-full ${isLive ? "live-dot bg-led" : "bg-accent"}`} />
+              {isLive ? labels.live : labels.preview}
+            </span>
+            <span>Bergen {formatClock(bergenMinutes(shown))}</span>
+            {preset ? (
+              <span>{labels.presets[preset]}</span>
+            ) : (
+              weather && (
+                <span>
+                  {Math.round(weather.temperature)}°C · {live?.label}
+                </span>
+              )
             )}
+            <span className="hidden text-muted sm:inline">
+              {(sunHeight >= 0 ? labels.sunAbove : labels.sunBelow).replace("{n}", String(Math.abs(sunHeight)))}
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen((value) => !value)}
+              aria-expanded={open}
+              aria-controls="sky-controls sky-controls-phone"
+              className="min-h-10 rounded-xl bg-ink/10 px-3 py-2 font-sans text-xs font-medium transition-colors hover:bg-ink/20"
+            >
+              {open ? labels.close : labels.open}
+            </button>
           </div>
-        )}
+
+          {/* From tablet size and up there is room for the panel on top of the scene. */}
+          <div id="sky-controls" className="mt-2 hidden sm:block">
+            {controls}
+          </div>
+        </div>
       </div>
-    </div>
+
+      {/* On phones the panel would cover the sky it changes, so it goes below the scene instead. */}
+      <div id="sky-controls-phone" className="relative z-10 mx-auto w-full px-5 pb-4 empty:hidden sm:hidden">
+        {controls}
+      </div>
+    </>
   );
 }
