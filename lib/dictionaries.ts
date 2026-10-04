@@ -84,6 +84,8 @@ const no = {
     place: "Bergen, Norge",
     weatherBefore: "Værdata fra ",
     weatherSource: "Meteorologisk institutt",
+    privacy:
+      "Siden teller besøk per dag, språk og land, for å se om den blir brukt. Tallene lagres hos Supabase i EU. Ingen IP-adresse lagres, ingen enkeltbesøkende kan kjennes igjen, og siden bruker ingen informasjonskapsler.",
   },
   // The text inside the forest scene. {n} is replaced with a number.
   scene: {
@@ -176,6 +178,8 @@ const en: Dictionary = {
     place: "Bergen, Norway",
     weatherBefore: "Weather data from ",
     weatherSource: "MET Norway",
+    privacy:
+      "This site counts visits per day, language and country, to see whether it is used. The counts are stored with Supabase in the EU. No IP address is stored, no single visitor can be recognised, and the site sets no cookies.",
   },
   scene: {
     live: "LIVE",

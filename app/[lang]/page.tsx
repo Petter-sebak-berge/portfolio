@@ -3,6 +3,7 @@
 
 import { notFound } from "next/navigation";
 import ForestScene from "../_components/ForestScene";
+import VisitCounter from "../_components/VisitCounter";
 import { getDictionary } from "@/lib/dictionaries";
 import { buildForest } from "@/lib/forest";
 import { hasLocale, htmlLang } from "@/lib/i18n";
@@ -226,19 +227,25 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
       </main>
 
       <footer className="border-t border-line">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-2 px-5 py-8 text-xs text-muted sm:flex-row sm:justify-between sm:px-8">
-          <p>
-            © {new Date().getFullYear()} Petter Sebak Berge · {t.footer.place}
-          </p>
-          <p>
-            {t.footer.weatherBefore}
-            <a href="https://api.met.no" className="underline underline-offset-4 hover:text-accent">
-              {t.footer.weatherSource}
-            </a>{" "}
-            (CC BY 4.0)
-          </p>
+        <div className="mx-auto w-full max-w-5xl px-5 py-8 text-xs text-muted sm:px-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-between">
+            <p>
+              © {new Date().getFullYear()} Petter Sebak Berge · {t.footer.place}
+            </p>
+            <p>
+              {t.footer.weatherBefore}
+              <a href="https://api.met.no" className="underline underline-offset-4 hover:text-accent">
+                {t.footer.weatherSource}
+              </a>{" "}
+              (CC BY 4.0)
+            </p>
+          </div>
+          {/* The privacy note: what the visit counter below stores, and what it doesn't */}
+          <p className="mt-4 max-w-2xl leading-5">{t.footer.privacy}</p>
         </div>
       </footer>
+
+      <VisitCounter page={lang} />
     </>
   );
 }
