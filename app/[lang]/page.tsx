@@ -35,6 +35,11 @@ export default async function Home({ params }: PageProps<"/[lang]">) {
   // add the text to both dictionaries, then another object to this array.
   const projects = [
     { ...t.projects.d4, stack: ["HTML", "CSS", "JavaScript"], href: "https://d4.servereniskogen.no" },
+    {
+      ...t.projects.busMap,
+      stack: ["Next.js", "TypeScript", "GraphQL", "WebSocket", "MapLibre"],
+      href: `https://buss.servereniskogen.no/${lang}`,
+    },
     { ...t.projects.portfolio, stack: ["Next.js", "TypeScript", "Tailwind CSS", "Vercel"], href: `${github}/portfolio` },
   ];
 

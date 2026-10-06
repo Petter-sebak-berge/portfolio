@@ -49,6 +49,12 @@ const no = {
         "Et fanlaget Build verktøy for Diablo IV: legg inn eller importer utstyret til en karakter, se hvordan skaden regnes ut og hva du bør forbedre først.",
       link: "Åpne verktøyet",
     },
+    busMap: {
+      title: "Hvor er bussen?",
+      description:
+        "Et kart som viser bussene rundt Bergen i sanntid: hvor de er, hvilken vei de kjører og om de er i rute. Posisjonene strømmer inn fra Enturs åpne API.",
+      link: "Åpne kartet",
+    },
     portfolio: {
       title: "Denne porteføljen",
       description:
@@ -142,6 +148,12 @@ const en: Dictionary = {
       description:
         "A fan-made build tool for Diablo IV: enter or import a character's gear, see how the damage is calculated and what to improve next.",
       link: "Open the tool",
+    },
+    busMap: {
+      title: "Where's the bus?",
+      description:
+        "A live map of the buses around Bergen: where they are, which way they are heading and whether they are on time. The positions stream in from Entur's open API.",
+      link: "Open the map",
     },
     portfolio: {
       title: "This portfolio",
